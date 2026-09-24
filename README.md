@@ -20,7 +20,7 @@
 - **Customer** (`id` (PK), `first_name`, `last_name`, `email`, `phone`);
 - **Address** (`id` (PK), `customer_id`, `country`, `city`, `street`, `postal_code`);
 - **Category** (`id` (PK), `name`);
-- **Book** (`id` (PK), `author_id`, `title``published_year`, `price`);
+- **Book** (`id` (PK), `author_id`, `title`, `published_year`, `price`);
 - **Author** (`id` (PK), `first_name`, `last_name`);
 - **Orders** (`id` (PK), `customer_id` (FK), `address_id` (FK), `date`, `status`);
 - **Order_item** (`order_id` (PK, FK), `book_id` (PK, FK), `quantity`, `unit_price`);
@@ -51,4 +51,4 @@
 
 ## ER-діаграма
 
-![](./ER-diagram/er-diagram.png)
+![](./docs/ER-diagram.png)
