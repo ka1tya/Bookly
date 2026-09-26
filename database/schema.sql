@@ -9,7 +9,7 @@ CREATE TABLE category (
 
 CREATE TABLE book (
     book_id SERIAL PRIMARY KEY,
-	author_id INT NOT NULL REFERENCES author(author_id),
+	fk_author_id INT NOT NULL REFERENCES author(author_id),
 	title VARCHAR(200) NOT NULL,
 	published_year INT CHECK (published_year > 0),
 	price NUMERIC(10,2) NOT NULL CHECK (price >= 0)
