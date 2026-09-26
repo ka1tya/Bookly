@@ -1,3 +1,7 @@
+-- =====================================================
+-- Поліщук Анна — Category, Book, Book_Category
+-- =====================================================
+
 CREATE TABLE category (
     category_id SERIAL PRIMARY KEY,
     category_name  VARCHAR(60) NOT NULL UNIQUE
