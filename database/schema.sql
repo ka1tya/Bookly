@@ -2,9 +2,27 @@
 -- Поліщук Анна — Category, Book, Book_Category
 -- =====================================================
 
+CREATE TABLE customer (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone VARCHAR(20) NOT NULL UNIQUE
+);
+
 CREATE TABLE category (
     category_id SERIAL PRIMARY KEY,
     category_name  VARCHAR(60) NOT NULL UNIQUE
+);
+
+CREATE TABLE address (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL,
+    country VARCHAR(100) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    street VARCHAR(255) NOT NULL,
+    postal_code VARCHAR(20),
+	FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE
 );
 
 CREATE TABLE book (
@@ -20,6 +38,8 @@ CREATE TABLE book_category (
 	fk_category_id INTEGER NOT NULL REFERENCES category(category_id),
 	PRIMARY KEY (fk_book_id, fk_category_id)
 );
+
+CREATE INDEX idx_address_customer_id ON address(customer_id);
 
 INSERT INTO category (category_id, category_name) VALUES
     (1, 'Фентезі'),
