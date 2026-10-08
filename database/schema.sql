@@ -53,6 +53,7 @@ CREATE TABLE orders (
 CREATE INDEX idx_orders_customer_id ON orders(customer_id);
 CREATE INDEX idx_orders_address_id ON orders(address_id);
 CREATE INDEX idx_address_customer_id ON address(customer_id);
+CREATE INDEX idx_book_author_id ON book(author_id);
 
 INSERT INTO category (category_id, category_name) VALUES
     (1, 'Фентезі'),
