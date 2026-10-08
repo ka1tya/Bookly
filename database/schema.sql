@@ -50,6 +50,23 @@ CREATE TABLE orders (
         CHECK (status IN ('нове', 'збирається', 'відправлено', 'отримано', 'скасовано'))
 );
 
+CREATE TABLE order_item (
+    order_id INTEGER NOT NULL REFERENCES orders(id),
+    book_id INTEGER NOT NULL REFERENCES book(book_id),
+    quantity INTEGER NOT NULL CHECK (quantity > 0 AND quantity <= 10),
+    unit_price NUMERIC(10,2) NOT NULL CHECK (unit_price >= 0),
+    PRIMARY KEY (order_id, book_id)
+);
+
+CREATE TABLE payment (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER NOT NULL UNIQUE REFERENCES orders(id),
+    amount NUMERIC(10,2) NOT NULL CHECK (amount >= 0),
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    method VARCHAR(20) NOT NULL CHECK (method IN ('картка', 'готівка')),
+    status VARCHAR(20) NOT NULL DEFAULT 'очікує' CHECK (status IN ('очікує', 'оплачено'))
+);
+
 CREATE INDEX idx_orders_customer_id ON orders(customer_id);
 CREATE INDEX idx_orders_address_id ON orders(address_id);
 CREATE INDEX idx_address_customer_id ON address(customer_id);
@@ -104,3 +121,19 @@ INSERT INTO orders (id, customer_id, address_id, date, status) VALUES
     (5, 4, 5, '2025-10-03', 'скасовано');
 
 SELECT setval('orders_id_seq', (SELECT MAX(id) FROM orders));
+
+INSERT INTO order_item (order_id, book_id, quantity, unit_price) VALUES
+    (1, 1, 1, 350.00),
+    (2, 2, 2, 300.00),
+    (3, 4, 1, 200.00),
+    (4, 6, 1, 260.00),
+    (5, 7, 2, 430.00);
+
+INSERT INTO payment (id, order_id, amount, date, method, status) VALUES
+    (1, 1, 350.00, '2025-09-02', 'картка', 'оплачено'),
+    (2, 2, 600.00, '2025-09-16', 'готівка', 'оплачено'),
+    (3, 3, 200.00, '2025-09-20', 'картка', 'очікує'),
+    (4, 4, 260.00, '2025-10-01', 'готівка', 'очікує'),
+    (5, 5, 860.00, '2025-10-03', 'картка', 'очікує');
+
+SELECT setval('payment_id_seq', (SELECT MAX(id) FROM payment));
