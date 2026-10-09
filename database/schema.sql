@@ -4,7 +4,6 @@ CREATE TABLE author (
     last_name VARCHAR(100) NOT NULL
 );
 
-
 CREATE TABLE customer (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
@@ -14,8 +13,8 @@ CREATE TABLE customer (
 );
 
 CREATE TABLE category (
-    category_id SERIAL PRIMARY KEY,
-    category_name  VARCHAR(60) NOT NULL UNIQUE
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    category_name VARCHAR(60) NOT NULL UNIQUE
 );
 
 CREATE TABLE address (
@@ -29,18 +28,19 @@ CREATE TABLE address (
 );
 
 CREATE TABLE book (
-    book_id SERIAL PRIMARY KEY,
-	fk_author_id INT NOT NULL REFERENCES author(author(id)),
-	title VARCHAR(200) NOT NULL,
-	published_year INT CHECK (published_year > 0),
-	price NUMERIC(10,2) NOT NULL CHECK (price >= 0)
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    author_id INTEGER NOT NULL REFERENCES author(id),
+    title VARCHAR(200) NOT NULL,
+    published_year INTEGER CHECK (published_year > 0),
+    price NUMERIC(10,2) NOT NULL CHECK (price >= 0)
 );
 
 CREATE TABLE book_category (
-    fk_book_id INTEGER NOT NULL REFERENCES book(book_id),
-	fk_category_id INTEGER NOT NULL REFERENCES category(category_id),
-	PRIMARY KEY (fk_book_id, fk_category_id)
+    book_id INTEGER NOT NULL REFERENCES book(id),
+    category_id INTEGER NOT NULL REFERENCES category(id),
+    PRIMARY KEY (book_id, category_id)
 );
+
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     customer_id INTEGER NOT NULL REFERENCES customer(id) ON DELETE RESTRICT,
@@ -73,35 +73,28 @@ CREATE INDEX idx_address_customer_id ON address(customer_id);
 CREATE INDEX idx_address_city ON address(city);
 CREATE INDEX idx_book_author_id ON book(author_id);
 
-INSERT INTO category (category_id, category_name) VALUES
-    (1, 'Фентезі'),
-    (2, 'Детектив'),
-    (3, 'Жахи'),
-    (4, 'Поезія'),
-    (5, 'Наукова фантастика'),
-    (6, 'Трилер'),
-    (7, 'Романтика');
+INSERT INTO category (category_name) VALUES
+    ('Фентезі'),
+    ('Детектив'),
+    ('Жахи'),
+    ('Поезія'),
+    ('Наукова фантастика'),
+    ('Трилер'),
+    ('Романтика');
 
-INSERT INTO book (book_id, fk_author_id, title, published_year, price) VALUES
-    (1, 1, 'Гаррі Поттер і філософський камінь', 1997, 350.00),
-    (2, 2, 'Бійцівський клуб', 1996, 300.00),
-    (3, 3, 'Воно', 1986, 420.00),
-    (4, 4, 'Маруся Чурай', 1979, 200.00),
-    (5, 5, 'Кобзар', 1840, 180.00),
-    (6, 6, 'Вбивство у Східному експресі', 1934, 260.00),
-    (7, 7, 'Переслідування Аделіни', 2021, 430.00);
+INSERT INTO book (author_id, title, published_year, price) VALUES
+    (1, 'Гаррі Поттер і філософський камінь', 1997, 350.00),
+    (2, 'Бійцівський клуб', 1996, 300.00),
+    (3, 'Воно', 1986, 420.00),
+    (4, 'Маруся Чурай', 1979, 200.00),
+    (5, 'Кобзар', 1840, 180.00),
+    (6, 'Вбивство у Східному експресі', 1934, 260.00),
+    (7, 'Переслідування Аделіни', 2021, 430.00);
 
-INSERT INTO book_category (fk_book_id, fk_category_id) VALUES
-    (1, 1),
-    (2, 6),
-    (3, 3),
-    (3, 6),
-    (4, 4),
-    (5, 4),
-    (6, 2),
-    (7, 6),
-    (7, 7);
-
+INSERT INTO book_category (book_id, category_id) VALUES
+    (1, 1), (2, 6), (3, 3), (3, 6), (4, 4),
+    (5, 4), (6, 2), (7, 6), (7, 7);
+    
 INSERT INTO customer (first_name, last_name, email, phone) VALUES
     ('Олена', 'Іваненко', 'diva@gmail.com', '+380501112233'),
     ('Марк', 'Цукерберг', 'zuckerbergpromax@gmail.com', '+380671234567'),
@@ -117,7 +110,7 @@ INSERT INTO address (customer_id, country, city, street, postal_code) VALUES
     (4, 'Україна', 'Харків', 'вул. Соборна 3А', '11330'),
     (5, 'Україна', 'Житомир', 'просп. Перемоги 2', '49008');
 
-    INSERT INTO author (id, first_name, last_name) VALUES
+INSERT INTO author (id, first_name, last_name) VALUES
     (1, 'Джоан', 'Роулінг'),
     (2, 'Чак', 'Поланік'),
     (3, 'Стівен', 'Кінг'),
@@ -126,17 +119,12 @@ INSERT INTO address (customer_id, country, city, street, postal_code) VALUES
     (6, 'Агата', 'Крісті'),
     (7, 'Г. Д.', 'Карлтон');
 
-SELECT setval('author_id_seq', (SELECT MAX(id) FROM author));
-
-
 INSERT INTO orders (id, customer_id, address_id, date, status) VALUES
     (1, 1, 1, '2025-09-01', 'отримано'),
     (2, 1, 2, '2025-09-15', 'відправлено'),
     (3, 2, 3, '2025-09-20', 'збирається'),
     (4, 3, 4, '2025-10-01', 'нове'),
     (5, 4, 5, '2025-10-03', 'скасовано');
-
-SELECT setval('orders_id_seq', (SELECT MAX(id) FROM orders));
 
 INSERT INTO order_item (order_id, book_id, quantity, unit_price) VALUES
     (1, 1, 1, 350.00),
@@ -151,5 +139,3 @@ INSERT INTO payment (id, order_id, amount, date, method, status) VALUES
     (3, 3, 200.00, '2025-09-20', 'картка', 'очікує'),
     (4, 4, 260.00, '2025-10-01', 'готівка', 'очікує'),
     (5, 5, 860.00, '2025-10-03', 'картка', 'очікує');
-
-SELECT setval('payment_id_seq', (SELECT MAX(id) FROM payment));
