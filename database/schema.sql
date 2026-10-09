@@ -6,7 +6,7 @@ CREATE TABLE author (
 
 
 CREATE TABLE customer (
-    id SERIAL PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -19,8 +19,8 @@ CREATE TABLE category (
 );
 
 CREATE TABLE address (
-    id SERIAL PRIMARY KEY,
-    customer_id INTEGER NOT NULL,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    customer_id INT NOT NULL,
     country VARCHAR(100) NOT NULL,
     city VARCHAR(100) NOT NULL,
     street VARCHAR(255) NOT NULL,
@@ -70,6 +70,7 @@ CREATE TABLE payment (
 CREATE INDEX idx_orders_customer_id ON orders(customer_id);
 CREATE INDEX idx_orders_address_id ON orders(address_id);
 CREATE INDEX idx_address_customer_id ON address(customer_id);
+CREATE INDEX idx_address_city ON address(city);
 CREATE INDEX idx_book_author_id ON book(author_id);
 
 INSERT INTO category (category_id, category_name) VALUES
@@ -100,6 +101,21 @@ INSERT INTO book_category (fk_book_id, fk_category_id) VALUES
     (6, 2),
     (7, 6),
     (7, 7);
+
+INSERT INTO customer (first_name, last_name, email, phone) VALUES
+    ('Олена', 'Іваненко', 'diva@gmail.com', '+380501112233'),
+    ('Марк', 'Цукерберг', 'zuckerbergpromax@gmail.com', '+380671234567'),
+    ('Софія', 'Ковальчук', 'sofiabondarenko1999@gmail.com', '+380931234567'),
+    ('Артем', 'Пивоваров', 'hornyboy@gmail.com', '+380971234567'),
+    ('Дарина', 'Бойко', 'slay@gmail.com', '+380631234567');
+ 
+INSERT INTO address (customer_id, country, city, street, postal_code) VALUES
+    (1, 'Україна', 'Київ', 'вул. Борщагівська 14', '01067'),
+    (1, 'Україна', 'Київ', 'просп. Берестейський 25', '03257'),
+    (2, 'США', 'Нью-Йорк', 'вул. Зодчих 5', '79722'),
+    (3, 'Україна', 'Одеса', 'вул. Дерибасівська 12', '65900'),
+    (4, 'Україна', 'Харків', 'вул. Соборна 3А', '11330'),
+    (5, 'Україна', 'Житомир', 'просп. Перемоги 2', '49008');
 
     INSERT INTO author (id, first_name, last_name) VALUES
     (1, 'Джоан', 'Роулінг'),
