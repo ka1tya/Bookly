@@ -1,5 +1,5 @@
 CREATE TABLE author (
-     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL
 );
@@ -73,14 +73,14 @@ CREATE INDEX idx_address_customer_id ON address(customer_id);
 CREATE INDEX idx_address_city ON address(city);
 CREATE INDEX idx_book_author_id ON book(author_id);
 
-INSERT INTO author (id, first_name, last_name) VALUES
-    (1, 'Джоан', 'Роулінг'),
-    (2, 'Чак', 'Поланік'),
-    (3, 'Стівен', 'Кінг'),
-    (4, 'Ліна', 'Костенко'),
-    (5, 'Тарас', 'Шевченко'),
-    (6, 'Агата', 'Крісті'),
-    (7, 'Г. Д.', 'Карлтон');
+INSERT INTO author (first_name, last_name) VALUES
+    ('Джоан', 'Роулінг'),
+    ('Чак', 'Поланік'),
+    ('Стівен', 'Кінг'),
+    ('Ліна', 'Костенко'),
+    ('Тарас', 'Шевченко'),
+    ('Агата', 'Крісті'),
+    ('Г. Д.', 'Карлтон');
 
 INSERT INTO category (category_name) VALUES
     ('Фентезі'),
@@ -119,12 +119,12 @@ INSERT INTO address (customer_id, country, city, street, postal_code) VALUES
     (4, 'Україна', 'Харків', 'вул. Соборна 3А', '11330'),
     (5, 'Україна', 'Житомир', 'просп. Перемоги 2', '49008');
 
-INSERT INTO orders (id, customer_id, address_id, date, status) VALUES
-    (1, 1, 1, '2025-09-01', 'отримано'),
-    (2, 1, 2, '2025-09-15', 'відправлено'),
-    (3, 2, 3, '2025-09-20', 'збирається'),
-    (4, 3, 4, '2025-10-01', 'нове'),
-    (5, 4, 5, '2025-10-03', 'скасовано');
+INSERT INTO orders (customer_id, address_id, date, status) VALUES
+    (1, 1, '2025-09-01', 'отримано'),
+    (1, 2, '2025-09-15', 'відправлено'),
+    (2, 3, '2025-09-20', 'збирається'),
+    (3, 4, '2025-10-01', 'нове'),
+    (4, 5, '2025-10-03', 'скасовано');
 
 INSERT INTO order_item (order_id, book_id, quantity, unit_price) VALUES
     (1, 1, 1, 350.00),
@@ -133,9 +133,9 @@ INSERT INTO order_item (order_id, book_id, quantity, unit_price) VALUES
     (4, 6, 1, 260.00),
     (5, 7, 2, 430.00);
 
-INSERT INTO payment (id, order_id, amount, date, method, status) VALUES
-    (1, 1, 350.00, '2025-09-02', 'картка', 'оплачено'),
-    (2, 2, 600.00, '2025-09-16', 'готівка', 'оплачено'),
-    (3, 3, 200.00, '2025-09-20', 'картка', 'очікує'),
-    (4, 4, 260.00, '2025-10-01', 'готівка', 'очікує'),
-    (5, 5, 860.00, '2025-10-03', 'картка', 'очікує');
+INSERT INTO payment (order_id, amount, date, method, status) VALUES
+    (1, 350.00, '2025-09-02', 'картка', 'оплачено'),
+    (2, 600.00, '2025-09-16', 'готівка', 'оплачено'),
+    (3, 200.00, '2025-09-20', 'картка', 'очікує'),
+    (4, 260.00, '2025-10-01', 'готівка', 'очікує'),
+    (5, 860.00, '2025-10-03', 'картка', 'очікує');
