@@ -32,6 +32,8 @@ Bookly — інтернет-магазин книг: клієнти перегл
 
 ```
 Bookly/
+├── requirements.txt
+├── pyproject.toml           налаштування pytest і покриття
 ├── docs/
 │   ├── requirements.md      вимоги, бізнес-правила, сутності
 │   ├── schema.md            опис таблиць, індексів, рішень
@@ -41,6 +43,16 @@ Bookly/
 │   ├── 001_initial_schema.sql   таблиці
 │   ├── 002_add_indexes.sql      індекси
 │   └── 003_seed_test_data.sql   демо-дані
+├── src/
+│   ├── db.py                підключення (DATABASE_URL)
+│   ├── main.py              запуск: перевірка бази
+│   ├── models/              ORM-моделі 9 таблиць і спільні статуси
+│   ├── repositories/        доступ до даних
+│   └── services/            бізнес-сценарії з транзакціями
+├── test/
+│   ├── conftest.py          спільні фікстури
+│   ├── unit/                тести без бази
+│   └── integration/         тести з PostgreSQL
 ├── README.md
 └── CONTRIBUTIONS.md
 ```
