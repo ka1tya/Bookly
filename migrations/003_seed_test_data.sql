@@ -1,77 +1,4 @@
-CREATE TABLE author (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE customer (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    phone VARCHAR(20) NOT NULL UNIQUE
-);
-
-CREATE TABLE category (
-    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    category_name VARCHAR(60) NOT NULL UNIQUE
-);
-
-CREATE TABLE address (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    customer_id INT NOT NULL,
-    country VARCHAR(100) NOT NULL,
-    city VARCHAR(100) NOT NULL,
-    street VARCHAR(255) NOT NULL,
-    postal_code VARCHAR(20),
-	FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE
-);
-
-CREATE TABLE book (
-    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    author_id INTEGER NOT NULL REFERENCES author(id),
-    title VARCHAR(200) NOT NULL,
-    published_year INTEGER CHECK (published_year > 0),
-    price NUMERIC(10,2) NOT NULL CHECK (price >= 0)
-);
-
-CREATE TABLE book_category (
-    book_id INTEGER NOT NULL REFERENCES book(id),
-    category_id INTEGER NOT NULL REFERENCES category(id),
-    PRIMARY KEY (book_id, category_id)
-);
-
-CREATE TABLE orders (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    customer_id INTEGER NOT NULL REFERENCES customer(id) ON DELETE RESTRICT,
-    address_id INTEGER NOT NULL REFERENCES address(id) ON DELETE RESTRICT,
-    date DATE NOT NULL DEFAULT CURRENT_DATE,
-    status VARCHAR(20) NOT NULL DEFAULT 'нове'
-        CHECK (status IN ('нове', 'збирається', 'відправлено', 'отримано', 'скасовано'))
-);
-
-CREATE TABLE order_item (
-    order_id INTEGER NOT NULL REFERENCES orders(id),
-    book_id INTEGER NOT NULL REFERENCES book(id),
-    quantity INTEGER NOT NULL CHECK (quantity > 0 AND quantity <= 10),
-    unit_price NUMERIC(10,2) NOT NULL CHECK (unit_price >= 0),
-    PRIMARY KEY (order_id, book_id)
-);
-
-CREATE TABLE payment (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    order_id INTEGER NOT NULL UNIQUE REFERENCES orders(id),
-    amount NUMERIC(10,2) NOT NULL CHECK (amount >= 0),
-    date DATE NOT NULL DEFAULT CURRENT_DATE,
-    method VARCHAR(20) NOT NULL CHECK (method IN ('картка', 'готівка')),
-    status VARCHAR(20) NOT NULL DEFAULT 'очікує' CHECK (status IN ('очікує', 'оплачено'))
-);
-
-CREATE INDEX idx_orders_customer_id ON orders(customer_id);
-CREATE INDEX idx_orders_address_id ON orders(address_id);
-CREATE INDEX idx_address_customer_id ON address(customer_id);
-CREATE INDEX idx_address_city ON address(city);
-CREATE INDEX idx_book_author_id ON book(author_id);
+-- 003: демо-дані
 
 INSERT INTO author (first_name, last_name) VALUES
     ('Джоан', 'Роулінг'),
@@ -103,14 +30,14 @@ INSERT INTO book (author_id, title, published_year, price) VALUES
 INSERT INTO book_category (book_id, category_id) VALUES
     (1, 1), (2, 6), (3, 3), (3, 6), (4, 4),
     (5, 4), (6, 2), (7, 6), (7, 7);
-    
+
 INSERT INTO customer (first_name, last_name, email, phone) VALUES
     ('Олена', 'Іваненко', 'diva@gmail.com', '+380501112233'),
     ('Марк', 'Цукерберг', 'zuckerbergpromax@gmail.com', '+380671234567'),
     ('Софія', 'Ковальчук', 'sofiabondarenko1999@gmail.com', '+380931234567'),
     ('Артем', 'Пивоваров', 'hornyboy@gmail.com', '+380971234567'),
     ('Дарина', 'Бойко', 'slay@gmail.com', '+380631234567');
- 
+
 INSERT INTO address (customer_id, country, city, street, postal_code) VALUES
     (1, 'Україна', 'Київ', 'вул. Борщагівська 14', '01067'),
     (1, 'Україна', 'Київ', 'просп. Берестейський 25', '03257'),
@@ -135,7 +62,8 @@ INSERT INTO order_item (order_id, book_id, quantity, unit_price) VALUES
 
 INSERT INTO payment (order_id, amount, date, method, status) VALUES
     (1, 350.00, '2025-09-02', 'картка', 'оплачено'),
-    (2, 600.00, '2025-09-16', 'готівка', 'оплачено'),
+    (2, 600.00, '2025-09-16', 'готівка', 'очікує'),
     (3, 200.00, '2025-09-20', 'картка', 'очікує'),
     (4, 260.00, '2025-10-01', 'готівка', 'очікує'),
     (5, 860.00, '2025-10-03', 'картка', 'очікує');
+
