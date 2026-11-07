@@ -1,0 +1,10 @@
+[tool.pytest.ini_options]
+testpaths = ["test"]
+pythonpath = ["."]
+addopts = "--cov=src --cov-report=term-missing"
+markers = [
+    "integration: тест працює з реальною базою PostgreSQL",
+]
+
+[tool.coverage.run]
+omit = ["src/main.py"]
