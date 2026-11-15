@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bookly
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bookly}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bookly_password}
+      POSTGRES_DB: ${POSTGRES_DB:-bookly}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bookly} -d ${POSTGRES_DB:-bookly}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - db-network
+
+  postgres_test:
+    image: postgres:16-alpine
+    container_name: bookly-test
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bookly}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bookly_password}
+      POSTGRES_DB: bookly_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bookly} -d bookly_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - db-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: bookly-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@bookly.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin_password}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - db-network
+
+  app:
+    build: .
+    container_name: bookly-app
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-bookly}:${POSTGRES_PASSWORD:-bookly_password}@postgres:5432/${POSTGRES_DB:-bookly}
+      TEST_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-bookly}:${POSTGRES_PASSWORD:-bookly_password}@postgres_test:5432/bookly_test
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres_test:
+        condition: service_healthy
+    networks:
+      - db-network
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  db-network:
+    driver: bridge
