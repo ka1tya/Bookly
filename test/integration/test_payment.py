@@ -5,7 +5,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 from src.models import OrderItem, Payment
-from src.models.constants import ORDER_NEW, ORDER_RECEIVED, ORDER_SHIPPED, PAYMENT_CARD, PAYMENT_CASH, PAYMENT_PAID
+from src.models.constants import ORDER_CANCELLED, ORDER_NEW, ORDER_RECEIVED, ORDER_SHIPPED, PAYMENT_CARD, PAYMENT_CASH, PAYMENT_PAID
 from src.services.errors import ConflictError, NotFoundError, OrderStatusError, ValidationError
 from src.services.payment_service import add_items_to_order, confirm_cash_payment, remove_order_item
 
@@ -233,6 +233,51 @@ def test_remove_item_missing_order(session):
     session.commit()
     with pytest.raises(NotFoundError):
         remove_order_item(session, 999999, 1)
+
+def set_order_status(session, order_id, status):
+    session.execute(text("UPDATE orders SET status = :status WHERE id = :id"), {"status": status, "id": order_id})
+
+def test_confirm_cash_sees_fresh_order_status(session, make_order, make_payment):
+    order = make_order(status=ORDER_RECEIVED)
+    payment = make_payment(order=order, method=PAYMENT_CASH)
+    session.commit()
+    set_order_status(session, order.id, ORDER_CANCELLED)
+
+    with pytest.raises(OrderStatusError):
+        confirm_cash_payment(session, order.id)
+    assert session.get(Payment, payment.id).status == "очікує"
+
+def test_confirm_cash_sees_fresh_payment_status(session, make_order, make_payment):
+    order = make_order(status=ORDER_RECEIVED)
+    make_payment(order=order, method=PAYMENT_CASH)
+    session.commit()
+    session.execute(text("UPDATE payment SET status = :status WHERE order_id = :id"), {"status": PAYMENT_PAID, "id": order.id})
+
+    with pytest.raises(ConflictError):
+        confirm_cash_payment(session, order.id)
+
+def test_add_items_sees_fresh_order_status(session, make_order, make_book):
+    order = make_order()
+    book = make_book()
+    session.commit()
+    set_order_status(session, order.id, ORDER_SHIPPED)
+
+    with pytest.raises(OrderStatusError):
+        add_items_to_order(session, order.id, [{"book_id": book.id, "quantity": 1}], PAYMENT_CARD)
+    assert count_items(session, order.id) == 0
+
+def test_remove_item_sees_fresh_order_status(session, make_order, make_book, make_order_item):
+    order = make_order()
+    book1 = make_book()
+    book2 = make_book()
+    make_order_item(order=order, book=book1)
+    make_order_item(order=order, book=book2)
+    session.commit()
+    set_order_status(session, order.id, ORDER_SHIPPED)
+
+    with pytest.raises(OrderStatusError):
+        remove_order_item(session, order.id, book1.id)
+    assert count_items(session, order.id) == 2
 
 def test_confirm_cash_lock(engine):
     with engine.connect() as other:

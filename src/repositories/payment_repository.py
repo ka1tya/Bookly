@@ -4,11 +4,11 @@ from sqlalchemy import func, select
 from src.models import Book, OrderItem, Orders, Payment
 
 def get_order_for_update(session, order_id):
-    return session.get(Orders, order_id, with_for_update=True)
+    return session.get(Orders, order_id, with_for_update=True, populate_existing=True)
 
 def get_payment_for_update(session, order_id):
     query = select(Payment).where(Payment.order_id == order_id).with_for_update()
-    return session.scalar(query)
+    return session.scalar(query, execution_options={"populate_existing": True})
 
 def get_payment(session, order_id):
     return session.scalar(select(Payment).where(Payment.order_id == order_id))
