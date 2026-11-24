@@ -80,5 +80,5 @@ def create_order(session, customer_id, address_id, items, payment_method):
     except Exception:
         session.rollback()
         raise
-    session.refresh(order)
+    session.refresh(order, ["items", "payment"])
     return order
