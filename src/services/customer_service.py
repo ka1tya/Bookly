@@ -62,7 +62,7 @@ def check_address_owner(session, address_id, customer_id):
 
 def change_order_address(session, order_id, address_id):
     try:
-        order = session.get(Orders, order_id, with_for_update=True)
+        order = session.get(Orders, order_id, with_for_update=True, populate_existing=True)
         if order is None:
             raise NotFoundError("Замовлення не знайдено")
         if order.status not in ACTIVE_STATUSES:

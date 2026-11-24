@@ -63,6 +63,13 @@ def test_change_to_missing_address(session):
         change_order_address(session, order_id=4, address_id=999)
     assert session.get(Orders, 4).address_id == 4
 
+def test_change_address_reads_fresh_status(session):
+    order = session.get(Orders, 4)
+    session.execute(text("UPDATE orders SET status = 'відправлено' WHERE id = 4"))
+
+    with pytest.raises(OrderStatusError):
+        change_order_address(session, order_id=order.id, address_id=4)
+
 def test_change_address_lock(engine):
     with engine.connect() as other:
         other.begin()
