@@ -1,0 +1,83 @@
+---
+config:
+  layout: elk
+  elk:
+    considerModelOrder: NODES_AND_EDGES
+    forceNodeModelOrder: true
+---
+erDiagram
+    CUSTOMER ||--o{ ADDRESS : "має"
+    CUSTOMER ||--o{ ORDERS : "оформлює"
+    ADDRESS ||--o{ ORDERS : "використовується для"
+    ORDERS ||--o| PAYMENT : "оплачується"
+    ORDERS ||--o{ ORDER_ITEM : "містить"
+    BOOK ||--o{ ORDER_ITEM : "стосується"
+    AUTHOR ||--o{ BOOK : "пише"
+    BOOK ||--o{ BOOK_CATEGORY : "належить до"
+    CATEGORY ||--o{ BOOK_CATEGORY : "містить"
+
+    CUSTOMER {
+        id int PK
+        first_name varchar
+        last_name varchar
+        email varchar UK
+        phone varchar UK
+    }
+
+    ADDRESS {
+        id int PK
+        customer_id int FK
+        country varchar
+        city varchar
+        street varchar
+        postal_code varchar
+    }
+
+    PAYMENT {
+        id int PK
+        order_id int FK, UK
+        amount numeric
+        date date
+        method varchar
+        status varchar
+    }
+
+    ORDERS {
+        id int PK
+        customer_id int FK
+        address_id int FK
+        date date
+        status varchar
+    }
+
+    ORDER_ITEM {
+        order_id int PK, FK
+        book_id int PK, FK
+        quantity int
+        unit_price numeric
+    }
+
+    BOOK {
+        id int PK
+        author_id int FK
+        title varchar
+        published_year int
+        price numeric
+    }
+
+    AUTHOR {
+        id int PK
+        first_name varchar
+        last_name varchar
+    }
+
+    BOOK_CATEGORY {
+        book_id int PK, FK
+        category_id int PK, FK
+    }
+
+    CATEGORY {
+        id int PK
+        category_name varchar UK
+    }
+
