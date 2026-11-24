@@ -1,7 +1,8 @@
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
+from sqlalchemy.orm import sessionmaker
 from src.models import Book, OrderItem, Orders, Payment
 from src.models.constants import ORDER_NEW, PAYMENT_CASH, PAYMENT_CARD, PAYMENT_PENDING
 from src.services.errors import ConflictError, NotFoundError, ValidationError
@@ -110,3 +111,21 @@ def test_rollback_after_db_error(session, monkeypatch):
         create_order(session, customer_id=1, address_id=1,
                      items=[{"book_id": 1, "quantity": 1}], payment_method=PAYMENT_CARD)
     assert_nothing_created(session, 5, 5, 5)
+
+def test_order_can_be_used_after_session_is_closed(engine):
+    get_session = sessionmaker(bind=engine, expire_on_commit=False)
+    order = None
+    try:
+        with get_session() as session:
+            order = create_order(session, customer_id=1, address_id=1,
+                                 items=[{"book_id": 1, "quantity": 2}], payment_method=PAYMENT_CARD)
+
+        assert order.status == ORDER_NEW
+        assert [(item.book_id, item.quantity) for item in order.items] == [(1, 2)]
+        assert order.payment.amount == Decimal("700.00")
+    finally:
+        if order is not None:
+            with engine.begin() as connection:
+                connection.execute(text("DELETE FROM payment WHERE order_id = :id"), {"id": order.id})
+                connection.execute(text("DELETE FROM order_item WHERE order_id = :id"), {"id": order.id})
+                connection.execute(text("DELETE FROM orders WHERE id = :id"), {"id": order.id})
