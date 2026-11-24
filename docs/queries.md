@@ -119,6 +119,57 @@ ORDER BY c.category_name, place, b.title;
 
 ## Сітковська Аліна — Order_item, Payment
 
+### Бізнес-питання
+
+Як змінюється виручка за місяцями і який спосіб оплати переважає?
+
+Магазину треба бачити динаміку грошей за місяцями окремо для картки й готівки, накопичену суму по кожному способу та те, який спосіб приніс більше у конкретному місяці. Це допомагає вирішувати, чи розвивати онлайн-оплату, чи тримати готівку при отриманні.
+
+### SQL-запит
+
+Функція `monthly_payments_report()` у `src/repositories/payment_queries.py`.
+
+```sql
+WITH monthly AS (
+    SELECT DATE_TRUNC('month', p.date)::date AS month,
+           p.method,
+           COUNT(*) AS payments_count,
+           SUM(p.amount) AS total_amount
+    FROM payment p
+    JOIN orders o ON o.id = p.order_id
+    WHERE o.status <> 'скасовано'
+    GROUP BY DATE_TRUNC('month', p.date), p.method
+)
+SELECT month,
+       method,
+       payments_count,
+       total_amount,
+       SUM(total_amount) OVER (PARTITION BY method ORDER BY month) AS cumulative_amount,
+       RANK() OVER (PARTITION BY month ORDER BY total_amount DESC) AS place
+FROM monthly
+ORDER BY month, place, method;
+```
+
+### Пояснення
+
+- **CTE `monthly`** групує платежі за місяцем і способом оплати та рахує кількість платежів `COUNT(*)` і суму `SUM(amount)`. `DATE_TRUNC('month', date)` обрізає дату до першого числа місяця, тому всі платежі одного місяця потрапляють в одну групу.
+- **Скасовані замовлення** не враховуються (`o.status <> 'скасовано'`), бо за них гроші не надходять. Для цього платіж з'єднується з `orders`.
+- **Накопичувальна сума** `SUM(total_amount) OVER (PARTITION BY method ORDER BY month)` додає до суми поточного місяця суми всіх попередніх місяців того самого способу. Вікно не згортає рядки, на відміну від `GROUP BY`.
+- **`RANK() OVER (PARTITION BY month ORDER BY total_amount DESC)`** нумерує способи оплати всередині місяця від більшої суми до меншої. Місце 1 це спосіб, що переважає в цьому місяці. При однакових сумах обидва способи отримують місце 1.
+- Платежі враховуються незалежно від статусу («очікує» і «оплачено»), бо запит показує оформлені платежі. Щоб бачити лише отримані гроші, достатньо додати `p.status = 'оплачено'`.
+
+### Приклад виводу
+
+Демо-дані, `python -m src.demo_payment`:
+
+| month | method | payments_count | total_amount | cumulative_amount | place |
+|---|---|---|---|---|---|
+| 2025-09-01 | готівка | 1 | 600.00 | 600.00 | 1 |
+| 2025-09-01 | картка | 2 | 550.00 | 550.00 | 2 |
+| 2025-10-01 | готівка | 1 | 260.00 | 860.00 | 1 |
+
+У вересні готівка (600) випередила картку (550), хоча карткою платежів більше. Платіж карткою на 860 грн за жовтень не потрапив у звіт, бо його замовлення скасоване.
+
 ## Лобода Аліна — Author, Orders
 
 ### Бізнес-питання
