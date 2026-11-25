@@ -85,6 +85,12 @@ docker compose run --rm app pytest test/unit
 docker compose run --rm app pytest test/integration
 ```
 
+Один тестовий файл:
+
+```bash
+docker compose run --rm app pytest test/integration/test_create_order.py
+```
+
 Локально (потрібен Python 3.12+ і запущена тестова база `docker compose up -d postgres_test`):
 
 ```bash
@@ -119,11 +125,31 @@ Bookly/
 ├── src/
 │   ├── db.py                підключення (DATABASE_URL)
 │   ├── main.py              запуск: перевірка бази
-│   ├── models/              ORM-моделі 9 таблиць і спільні статуси
-│   ├── repositories/        доступ до даних
+│   ├── demo_customer.py     демо запитів Customer/Address
+│   ├── demo_book.py         демо запитів Category/Book
+│   ├── demo_payment.py      демо запитів Order_item/Payment
+│   ├── models/              ORM-моделі
+│   │   ├── base.py
+│   │   ├── customer.py      Customer, Address
+│   │   ├── catalog.py       Author, Category, Book, book_category
+│   │   ├── order.py         Orders, OrderItem, Payment
+│   │   └── constants.py     статуси, способи оплати, переходи статусів
+│   ├── repositories/        доступ до даних і запити
+│   │   ├── customer_repository.py
+│   │   ├── book_repository.py
+│   │   ├── book_queries.py
+│   │   ├── order_repository.py
+│   │   ├── payment_repository.py
+│   │   └── payment_queries.py
 │   └── services/            бізнес-сценарії з транзакціями
+│       ├── customer_service.py
+│       ├── book_service.py
+│       ├── order_service.py
+│       ├── payment_service.py
+│       ├── errors.py        спільні помилки
+│       └── book_errors.py
 ├── test/
-│   ├── conftest.py          спільні фікстури
+│   ├── conftest.py          спільні фікстури і фабрики даних
 │   ├── unit/                тести без бази
 │   └── integration/         тести з PostgreSQL
 ├── README.md
