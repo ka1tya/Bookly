@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 from sqlalchemy import func, select, text
+from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session
 
 from src.models import Book, Category, OrderItem, book_category
@@ -12,7 +13,7 @@ from src.services.book_service import (
     delete_book_not_in_orders,
     get_current_prices,
 )
-from src.services.errors import LockedError, NotFoundError, ValidationError
+from src.services.errors import ConflictError, LockedError, NotFoundError, ValidationError
 
 pytestmark = pytest.mark.integration
 
@@ -203,3 +204,44 @@ def test_current_prices_no_commit(session, make_book):
     assert get_current_prices(session, [book.id]) == {book.id: Decimal("75.00")}
     session.rollback()
     assert session.get(Book, book.id) is None
+
+
+def test_create_book_other_db_error(session, monkeypatch):
+    import src.services.book_service as book_service
+
+    def broken_categories(session, book_id, category_ids):
+        raise IntegrityError("INSERT", {}, Exception("інша помилка БД"))
+
+    monkeypatch.setattr(book_service, "add_categories", broken_categories)
+
+    before = count_books(session)
+    with pytest.raises(ConflictError):
+        create_book_with_categories(session, 1, "Книга", 2020, 100, [1])
+    assert count_books(session) == before
+
+
+def test_change_price_other_db_error(session, monkeypatch):
+    import src.services.book_service as book_service
+
+    def broken_lock(session, book_id, nowait=False):
+        raise OperationalError("SELECT", {}, Exception("з'єднання втрачено"))
+
+    monkeypatch.setattr(book_service, "lock_book", broken_lock)
+
+    with pytest.raises(OperationalError):
+        change_book_price(session, BOOK_ID, "500.00")
+    assert price_of(session, BOOK_ID) == Decimal("420.00")
+
+
+def test_delete_book_db_error(session, monkeypatch):
+    import src.services.book_service as book_service
+
+    def broken_in_orders(session, book_id):
+        raise IntegrityError("DELETE", {}, Exception("порушення зв'язку"))
+
+    monkeypatch.setattr(book_service, "in_orders", broken_in_orders)
+
+    before = count_books(session)
+    with pytest.raises(BookInOrdersError):
+        delete_book_not_in_orders(session, BOOK_ID)
+    assert count_books(session) == before
