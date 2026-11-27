@@ -128,6 +128,7 @@ Bookly/
 │   ├── demo_customer.py     демо запитів Customer/Address
 │   ├── demo_book.py         демо запитів Category/Book
 │   ├── demo_payment.py      демо запитів Order_item/Payment
+│   ├── demo_order.py        демо запитів Author/Orders
 │   ├── models/              ORM-моделі
 │   │   ├── base.py
 │   │   ├── customer.py      Customer, Address
@@ -166,6 +167,7 @@ Bookly/
 docker compose run --rm app python -m src.demo_customer
 docker compose run --rm app python -m src.demo_book
 docker compose run --rm app python -m src.demo_payment
+docker compose run --rm app python -m src.demo_order
 ```
 
 ### Сценарії
